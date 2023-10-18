@@ -16,7 +16,7 @@ interface IProps {
 
 interface IEmits {
   (event: 'update:modelValue', value: string): void;
-  (event: 'complete'): void;
+  (event: 'try'): void;
   (event: 'decline'): void;
   (event: 'retry'): void;
 }
@@ -43,8 +43,8 @@ const handleScroll = (event: UIEvent) => {
 <template>
   <div class="container">
     <div class="field-group column gap-2">
-      <div class="row jc-space-between">
-        <h2>Ваше решение</h2>
+      <div class="actions row jc-space-between">
+        <h3>Ваше решение</h3>
         <div class="row gap-2">
           <template v-if="isDeclined">
             <Button color="accent" size="sm" @click="emit('retry')">
@@ -57,7 +57,7 @@ const handleScroll = (event: UIEvent) => {
               {{ `Попыток: ${attempts ?? 0}, время решения: ` }}
               <Time :time="time" />
             </div>
-            <Button color="accent" size="sm" @click="emit('complete')">
+            <Button color="accent" size="sm" @click="emit('try')">
               <vue-feather type="play" />
               Запуск!
             </Button>
@@ -87,8 +87,8 @@ const handleScroll = (event: UIEvent) => {
       </div>
     </div>
     <div class="field-group column gap-2">
-      <div class="row jc-space-between">
-        <h2>Решение соперника</h2>
+      <div class="actions row jc-space-between">
+        <h3>Решение соперника</h3>
         <div class="row gap-2">
           <div class="centered muted">
             {{ `Попыток: ${opponentAttempts ?? 0}, время решения: ` }}
@@ -108,10 +108,14 @@ const handleScroll = (event: UIEvent) => {
 <style scoped>
 .container {
   width: 100%;
-  height: 100%;
+  flex-grow: 1;
   display: flex;
   gap: .5rem;
-  padding: .5rem;
+}
+
+.actions {
+  height: 2rem;
+  align-items: center;
 }
 
 .field-group {

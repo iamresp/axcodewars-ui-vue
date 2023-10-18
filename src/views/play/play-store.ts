@@ -1,7 +1,10 @@
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
+import { Task } from './models';
+import { useAuthStore } from '@/widgets/auth';
 
 export const usePlayStore = defineStore('play', () => {
+  const authstore = useAuthStore();
   const ws = ref<WebSocket>();
   const connId = ref<string>();
   const peerId = ref<string>();
@@ -15,6 +18,10 @@ export const usePlayStore = defineStore('play', () => {
   const isReady = computed(() => !!peerId.value && isPlayerReady.value && isOpponentReady.value);
   const isDeclined = ref<boolean>(false);
   const isDisconnected = ref<boolean>(false);
+  const hasWon = ref<boolean>(false);
+  const hasLost = ref<boolean>(false);
+  const taskId = ref<string>('');
+  const task = ref<Task>();
 
   const sendMessage = <T = null>(event: string, data?: T) => {
     ws.value?.send(JSON.stringify({ event, data }));
@@ -31,6 +38,8 @@ export const usePlayStore = defineStore('play', () => {
     opponentAttempts.value = 0;
     isDeclined.value = false;
     isDisconnected.value = false;
+    hasWon.value = false;
+    hasLost.value = false;
   };
 
   const decline = () => {
@@ -39,9 +48,19 @@ export const usePlayStore = defineStore('play', () => {
     isIdling.value = true;
   };
 
+  const attempt = () => {
+    sendMessage('attempt');
+    ++attempts.value;
+  };
+
+  const win = () => {
+    hasWon.value = true;
+    sendMessage('win');
+  };
+
   const retry = () => {
     sendMessage('retry');
-    isIdling.value = false;
+    reset();
   };
 
   const handlePairMessage = (data: string) => {
@@ -69,8 +88,16 @@ export const usePlayStore = defineStore('play', () => {
     isOpponentReady.value = true;
   };
 
+  const handleAttemptMessage = () => {
+    ++opponentAttempts.value;
+  };
+
+  const handleLoseMessage = () => {
+    hasLost.value = true;
+  };
+
   const connect = () => {
-    ws.value = new WebSocket(`ws://localhost:${process.env.VUE_APP_WS_PORT}`);
+    ws.value = new WebSocket(`ws://localhost:${process.env.VUE_APP_WS_PORT}?taskId=${taskId.value}`);
 
     ws.value.onopen = () => {
       ws.value!.onmessage = event => {
@@ -92,6 +119,12 @@ export const usePlayStore = defineStore('play', () => {
         case 'ready':
           handleReadyMessage();
           break;
+        case 'attempt':
+          handleAttemptMessage();
+          break;
+        case 'lose':
+          handleLoseMessage();
+          break;
         }
       };
     };
@@ -105,9 +138,25 @@ export const usePlayStore = defineStore('play', () => {
     }
   };
 
+  const getTask = async (): Promise<Task> => {
+    const response = await fetch(`${process.env.VUE_APP_API_URL}/tasks/${taskId.value}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${authstore.token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    task.value = await response.json() as Task;
+
+    return task.value;
+  };
+
   return {
     attempts,
     connId,
+    hasLost,
+    hasWon,
     isDeclined,
     isDisconnected,
     isIdling,
@@ -118,10 +167,14 @@ export const usePlayStore = defineStore('play', () => {
     opponentText,
     peerId,
     playerText,
+    task,
+    taskId,
 
+    attempt,
     connect,
     decline,
     disconnect,
+    getTask,
     handleDeclineMessage,
     handleDisconnectMessage,
     handlePairMessage,
@@ -129,5 +182,6 @@ export const usePlayStore = defineStore('play', () => {
     handleReadyMessage,
     retry,
     sendMessage,
+    win,
   };
 });
