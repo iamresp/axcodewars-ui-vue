@@ -97,7 +97,7 @@ export const usePlayStore = defineStore('play', () => {
   };
 
   const connect = () => {
-    ws.value = new WebSocket(`ws://localhost:${process.env.VUE_APP_WS_PORT}?taskId=${taskId.value}`);
+    ws.value = new WebSocket(`ws://${process.env.VUE_APP_WS_URL}?taskId=${taskId.value}`);
 
     ws.value.onopen = () => {
       ws.value!.onmessage = event => {
