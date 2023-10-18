@@ -1,0 +1,14 @@
+:root {
+  --c-primary: #0d60bf;
+  --c-secondary: #294d6f;
+  --c-tetriary: #15324d;
+  --c-neutral: #6c8399;
+  --c-white: #fff;
+  --c-accent: #0070ff;
+  --c-danger: #ff7b00;
+  --c-dark: #2f2f2f;
+  --c-darker: #212121;
+  --c-shade: #2f2f2fc5;
+  --c-primary-shade: #0572ee40;
+  --c-danger-shade: #ff7b0040;
+}
