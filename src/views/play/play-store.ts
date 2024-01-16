@@ -64,6 +64,11 @@ export const usePlayStore = defineStore('play', () => {
     reset();
   };
 
+  const handleConnectMessage = (data: string) => {
+    connId.value = data;
+    void authorizeConnection();
+  };
+
   const handlePairMessage = (data: string) => {
     peerId.value = data;
     void getPeer();
@@ -111,7 +116,7 @@ export const usePlayStore = defineStore('play', () => {
 
         switch (message.event) {
         case 'connect':
-          console.info(message.data);
+          handleConnectMessage(message.data);
           break;
         case 'pair':
           handlePairMessage(message.data);
@@ -161,6 +166,19 @@ export const usePlayStore = defineStore('play', () => {
     return task.value;
   };
 
+  const authorizeConnection = async (): Promise<void> => {
+    await fetch(`${process.env.VUE_APP_API_URL}/connector`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${authstore.token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        connId: connId.value,
+      }),
+    });
+  };
+
   const getPeer = async (): Promise<PeerUser> => {
     const response = await fetch(`${process.env.VUE_APP_API_URL}/connector/${peerId.value}`, {
       method: 'GET',
@@ -188,6 +206,7 @@ export const usePlayStore = defineStore('play', () => {
     isReady,
     opponentAttempts,
     opponentText,
+    peer,
     peerId,
     playerText,
     task,

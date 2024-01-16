@@ -25,10 +25,50 @@ export const useTasksStore = defineStore('tasks', () => {
     return tasks.value;
   };
 
+  const updateTask = async (payload: Partial<Task>): Promise<Task> => {
+    const response = await fetch(`${process.env.VUE_APP_API_URL}/tasks`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${authstore.token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(payload),
+    });
+
+    return response.json() as Promise<Task>;
+  };
+
+  const deleteTask = async (taskUuid: string): Promise<boolean> => {
+    const response = await fetch(`${process.env.VUE_APP_API_URL}/tasks/${taskUuid}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${authstore.token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    return response.json() as Promise<boolean>;
+  };
+
+  const validateConnection = async (): Promise<boolean> => {
+    const response = await fetch(`${process.env.VUE_APP_API_URL}/connector/validate`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${authstore.token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    return Boolean(response.ok);
+  };
+
   return {
     tasks,
 
+    deleteTask,
     getTasks,
     reset,
+    updateTask,
+    validateConnection,
   };
 });

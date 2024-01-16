@@ -8,7 +8,6 @@ export const useAuthStore = defineStore('auth', () => {
   const username = ref<string>(localStorage.getItem('username') ?? '');
   const hash = ref<string>('');
   const avatar = ref<string>('');
-  const connId = ref<string>('');
 
   const isAuthorized = computed(() => token.value && uuid.value);
 
@@ -18,7 +17,6 @@ export const useAuthStore = defineStore('auth', () => {
     username.value = '';
     hash.value = '';
     avatar.value = '';
-    connId.value = '';
   };
 
   const getUser = async (): Promise<User> => {
@@ -51,7 +49,6 @@ export const useAuthStore = defineStore('auth', () => {
       },
       body: JSON.stringify({
         avatar: avatar.value,
-        connId: connId.value,
         username: username.value,
         hash: hash.value,
       }),
@@ -106,7 +103,6 @@ export const useAuthStore = defineStore('auth', () => {
 
   return {
     avatar,
-    connId,
     hash,
     isAuthorized,
     token,
