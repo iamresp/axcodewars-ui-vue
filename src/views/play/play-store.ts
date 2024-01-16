@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia';
 import { computed, ref } from 'vue';
 import { Task } from './models';
-import { useAuthStore } from '@/widgets/auth';
+import { PeerUser, useAuthStore } from '@/widgets/auth';
 
 export const usePlayStore = defineStore('play', () => {
   const authstore = useAuthStore();
@@ -22,6 +22,7 @@ export const usePlayStore = defineStore('play', () => {
   const hasLost = ref<boolean>(false);
   const taskId = ref<string>('');
   const task = ref<Task>();
+  const peer = ref<PeerUser>();
 
   const sendMessage = <T = null>(event: string, data?: T) => {
     ws.value?.send(JSON.stringify({ event, data }));
@@ -65,6 +66,7 @@ export const usePlayStore = defineStore('play', () => {
 
   const handlePairMessage = (data: string) => {
     peerId.value = data;
+    void getPeer();
   };
 
   const handlePullMessage = (data: string) => {
@@ -99,11 +101,18 @@ export const usePlayStore = defineStore('play', () => {
   const connect = () => {
     ws.value = new WebSocket(`ws://${process.env.VUE_APP_WS_URL}?taskId=${taskId.value}`);
 
+    ws.value.onclose = () => {
+      reset();
+    };
+
     ws.value.onopen = () => {
       ws.value!.onmessage = event => {
         const message = JSON.parse(event.data);
 
         switch (message.event) {
+        case 'connect':
+          console.info(message.data);
+          break;
         case 'pair':
           handlePairMessage(message.data);
           break;
@@ -152,6 +161,20 @@ export const usePlayStore = defineStore('play', () => {
     return task.value;
   };
 
+  const getPeer = async (): Promise<PeerUser> => {
+    const response = await fetch(`${process.env.VUE_APP_API_URL}/connector/${peerId.value}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${authstore.token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
+    peer.value = await response.json() as PeerUser;
+
+    return peer.value;
+  };
+
   return {
     attempts,
     connId,
@@ -174,6 +197,7 @@ export const usePlayStore = defineStore('play', () => {
     connect,
     decline,
     disconnect,
+    getPeer,
     getTask,
     handleDeclineMessage,
     handleDisconnectMessage,

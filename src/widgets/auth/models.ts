@@ -11,3 +11,8 @@ export interface User {
   username: string;
   uuid: string;
 }
+
+export interface PeerUser {
+  avatar: string;
+  username: string;
+}

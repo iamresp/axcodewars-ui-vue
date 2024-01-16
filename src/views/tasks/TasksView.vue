@@ -29,7 +29,12 @@ onMounted(() => {
             <div class="column">
               <p>Кейсы:</p>
               <p v-for="(result, i) in task.results" :key="i">
-                Для аргументов {{ JSON.parse(result[0]).join(', ') }} функция должна вернуть {{ result[1] }}
+                <template v-if="Array.isArray(JSON.parse(result[0]))">
+                  Для аргументов {{ JSON.parse(result[0]).join(', ') }} функция должна вернуть {{ result[1] }}
+                </template>
+                <template v-else>
+                  Для аргумента {{ JSON.parse(result[0]) }} функция должна вернуть {{ result[1] }}
+                </template>
               </p>
             </div>
           </router-link>
